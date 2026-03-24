@@ -28,6 +28,7 @@ import {
   GitFork,
   SquareTerminal,
   History,
+  Columns3,
 } from "lucide-react";
 import { getAgentDisplayName } from "@/config/branding";
 
@@ -42,6 +43,7 @@ const navItems = [
   { href: "/git", label: "Git", icon: GitFork },
   { href: "/workflows", label: "Workflows", icon: Workflow },
   { href: "/activity", label: "Activity", icon: Activity },
+  { href: "/kanban", label: "Kanban", icon: Columns3 },
   { href: "/memory", label: "Memory", icon: Brain },
   { href: "/files", label: "Files", icon: FolderOpen },
   { href: "/cron", label: "Cron Jobs", icon: Timer },
