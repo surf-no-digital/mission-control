@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { verifyPassword, signToken } from '@/lib/auth';
 
 // Simple in-memory rate limiter (per-IP, resets on server restart)
 // Sufficient for a personal dashboard — no external dependency needed
@@ -87,18 +88,21 @@ export async function POST(request: NextRequest) {
 
   const { password } = await request.json();
 
-  if (password === process.env.ADMIN_PASSWORD) {
-    clearAttempts(ip); // Reset on success
+  const isValid = await verifyPassword(password);
+
+  if (isValid) {
+    clearAttempts(ip);
+
+    const token = signToken({ ip });
+    const isSecure = process.env.FORCE_INSECURE_COOKIES !== "true" &&
+      process.env.NODE_ENV === "production";
 
     const response = NextResponse.json({ success: true });
-
-    // Set auth cookie (7 days expiry)
-    // secure=true in production (HTTPS), false in dev (HTTP localhost)
-    response.cookies.set("mc_auth", process.env.AUTH_SECRET!, {
+    response.cookies.set("mc_auth", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isSecure,
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       path: "/",
     });
 
