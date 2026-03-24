@@ -12,6 +12,26 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
+// Rate limiting: 10 requests per minute per IP
+const TERMINAL_MAX_REQUESTS = 10;
+const TERMINAL_WINDOW_MS = 60 * 1000;
+const terminalRequests = new Map<string, { count: number; windowStart: number }>();
+
+function checkTerminalRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const record = terminalRequests.get(ip);
+
+  if (!record || now - record.windowStart > TERMINAL_WINDOW_MS) {
+    terminalRequests.set(ip, { count: 1, windowStart: now });
+    return true;
+  }
+
+  if (record.count >= TERMINAL_MAX_REQUESTS) return false;
+
+  record.count++;
+  return true;
+}
+
 // Allowlist of allowed base commands (first word of command)
 // NOTE: env, curl, wget intentionally excluded to prevent secret exfiltration and arbitrary downloads
 const ALLOWED_BASE_COMMANDS = new Set([
@@ -83,6 +103,14 @@ function isCommandAllowed(cmd: string): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    if (!checkTerminalRateLimit(ip)) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Max 10 commands per minute.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const command = (body.command || '').trim();
 
