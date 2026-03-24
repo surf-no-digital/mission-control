@@ -86,25 +86,25 @@ export default function DashboardPage() {
         {/* Stats */}
         <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatsCard
-            title="Total Activities"
+            title="Total de Atividades"
             value={stats.total.toLocaleString()}
             icon={<Activity className="w-5 h-5" />}
             iconColor="var(--info)"
           />
           <StatsCard
-            title="Today"
+            title="Hoje"
             value={stats.today.toLocaleString()}
             icon={<Zap className="w-5 h-5" />}
             iconColor="var(--accent)"
           />
           <StatsCard
-            title="Successful"
+            title="Sucesso"
             value={stats.success.toLocaleString()}
             icon={<CheckCircle className="w-5 h-5" />}
             iconColor="var(--success)"
           />
           <StatsCard
-            title="Errors"
+            title="Erros"
             value={stats.error.toLocaleString()}
             icon={<XCircle className="w-5 h-5" />}
             iconColor="var(--error)"
@@ -139,7 +139,7 @@ export default function DashboardPage() {
               }}
             >
               <Users className="inline-block w-5 h-5 mr-2 mb-1" />
-              Multi-Agent System
+              Sistema Multi-Agente
             </h2>
           </div>
           <div className="flex gap-2">
@@ -152,14 +152,14 @@ export default function DashboardPage() {
               }}
             >
               <Gamepad2 className="inline-block w-4 h-4 mr-1 mb-0.5" />
-              Open Office
+              Abrir Escritório
             </Link>
             <Link
               href="/agents"
               className="text-sm font-medium"
               style={{ color: 'var(--accent)' }}
             >
-              View all →
+              Ver todos →
             </Link>
           </div>
         </div>
@@ -208,7 +208,7 @@ export default function DashboardPage() {
                     style={{ color: '#0088cc' }}
                   >
                     <MessageSquare className="w-3 h-3" />
-                    Connected
+                    Conectado
                   </div>
                 )}
               </div>
@@ -240,7 +240,7 @@ export default function DashboardPage() {
                   color: 'var(--text-primary)'
                 }}
               >
-                Recent Activity
+                Atividade Recente
               </h2>
             </div>
             <a
@@ -248,7 +248,7 @@ export default function DashboardPage() {
               className="text-sm font-medium"
               style={{ color: 'var(--accent)' }}
             >
-              View all →
+              Ver tudo →
             </a>
           </div>
           <div className="p-0">
@@ -277,17 +277,17 @@ export default function DashboardPage() {
                   color: 'var(--text-primary)'
                 }}
               >
-                Quick Links
+                Links Rápidos
               </h2>
             </div>
           </div>
           <div className="p-4 grid grid-cols-2 gap-2">
             {[
-              { href: "/cron", icon: Calendar, label: "Cron Jobs", color: "#a78bfa" },
-              { href: "/actions", icon: Zap, label: "Quick Actions", color: "var(--accent)" },
-              { href: "/system", icon: Server, label: "System", color: "var(--success)" },
-              { href: "/logs", icon: Terminal, label: "Live Logs", color: "#60a5fa" },
-              { href: "/memory", icon: Brain, label: "Memory", color: "#f59e0b" },
+              { href: "/cron", icon: Calendar, label: "Tarefas Agendadas", color: "#a78bfa" },
+              { href: "/actions", icon: Zap, label: "Ações Rápidas", color: "var(--accent)" },
+              { href: "/system", icon: Server, label: "Sistema", color: "var(--success)" },
+              { href: "/logs", icon: Terminal, label: "Logs ao Vivo", color: "#60a5fa" },
+              { href: "/memory", icon: Brain, label: "Memória", color: "#f59e0b" },
               { href: "/skills", icon: Puzzle, label: "Skills", color: "#4ade80" },
             ].map(({ href, icon: Icon, label, color }) => (
               <Link

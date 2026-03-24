@@ -663,10 +663,10 @@ export default function SessionsPage() {
               marginBottom: "0.25rem",
             }}
           >
-            💬 Session History
+            💬 Histórico de Sessões
           </h1>
           <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
-            All OpenClaw agent sessions — main, cron, sub-agents, and chats
+            Todas as sessões dos agentes — principal, cron, subagentes e chats
           </p>
         </div>
 
