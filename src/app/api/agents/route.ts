@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { getAgentsConfig, getOrgTree } from '@/lib/agents-config';
 
 export const dynamic = "force-dynamic";
 
@@ -136,7 +137,55 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ agents });
+    // Merge with agents-config.json (squads + planned agents)
+    const agentsConfig = getAgentsConfig();
+
+    // Enrich existing OpenClaw agents with config data
+    const enrichedAgents = agents.map((agent: any) => {
+      const configAgent = agentsConfig.agents.find(
+        (a) => a.openclawAgentId === agent.id
+      );
+      if (configAgent) {
+        return {
+          ...agent,
+          configId: configAgent.id,
+          role: configAgent.role,
+          squad: configAgent.squad,
+          reportsTo: configAgent.reportsTo,
+          emoji: configAgent.emoji || agent.emoji,
+          color: configAgent.color || agent.color,
+          name: configAgent.name || agent.name,
+        };
+      }
+      return agent;
+    });
+
+    // Add planned agents not yet in OpenClaw
+    const plannedAgents = agentsConfig.agents
+      .filter((a) => a.status === 'planned')
+      .map((a) => ({
+        id: a.id,
+        configId: a.id,
+        name: a.name,
+        emoji: a.emoji,
+        color: a.color,
+        model: a.model,
+        workspace: '',
+        role: a.role,
+        squad: a.squad,
+        reportsTo: a.reportsTo,
+        status: 'planned' as const,
+        lastActivity: undefined,
+        activeSessions: 0,
+      }));
+
+    const allAgents = [...enrichedAgents, ...plannedAgents];
+
+    return NextResponse.json({
+      agents: allAgents,
+      squads: agentsConfig.squads,
+      orgTree: getOrgTree(),
+    });
   } catch (error) {
     console.error("Error reading agents:", error);
     return NextResponse.json(
