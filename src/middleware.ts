@@ -9,7 +9,16 @@ const PUBLIC_API_PREFIXES = ["/api/auth/", "/api/health"];
 
 function isAuthenticated(request: NextRequest): boolean {
   const authCookie = request.cookies.get("mc_auth");
-  return !!(authCookie && authCookie.value === process.env.AUTH_SECRET);
+  if (!authCookie?.value) return false;
+
+  try {
+    const secret = process.env.JWT_SECRET || process.env.AUTH_SECRET || 'fallback-dev-secret';
+    const jwt = require('jsonwebtoken');
+    jwt.verify(authCookie.value, secret);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function middleware(request: NextRequest) {
