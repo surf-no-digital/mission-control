@@ -35,7 +35,7 @@
       "role": "Diretrizes técnicas, arquitetura, code review",
       "squad": "tech",
       "reportsTo": "arthur-levi",
-      "model": "claude-sonnet-4-5",
+      "model": "claude-opus-4-6",
       "openclawAgentId": null,
       "status": "planned",
       "color": "#6366f1"
@@ -46,8 +46,8 @@
       "emoji": "📋",
       "role": "Roadmap, priorização de features",
       "squad": "tech",
-      "reportsTo": "arthur-levi",
-      "model": "claude-sonnet-4-5",
+      "reportsTo": "tech-lead",
+      "model": "claude-opus-4-6",
       "openclawAgentId": null,
       "status": "planned",
       "color": "#8b5cf6"
@@ -58,8 +58,8 @@
       "emoji": "✅",
       "role": "Backlog, requisitos, critérios de aceite",
       "squad": "tech",
-      "reportsTo": "arthur-levi",
-      "model": "claude-sonnet-4-5",
+      "reportsTo": "tech-lead",
+      "model": "claude-opus-4-6",
       "openclawAgentId": null,
       "status": "planned",
       "color": "#14b8a6"
@@ -71,7 +71,7 @@
       "role": "Implementação de features (React/Next.js + Node)",
       "squad": "tech",
       "reportsTo": "tech-lead",
-      "model": "claude-sonnet-4-5",
+      "model": "claude-opus-4-6",
       "openclawAgentId": null,
       "status": "planned",
       "color": "#22c55e"
@@ -83,7 +83,7 @@
       "role": "Design de telas, protótipos, design system",
       "squad": "tech",
       "reportsTo": "tech-lead",
-      "model": "claude-sonnet-4-5",
+      "model": "claude-opus-4-6",
       "openclawAgentId": null,
       "status": "planned",
       "color": "#ec4899"
@@ -95,7 +95,7 @@
       "role": "Testes, reporte de bugs, qualidade",
       "squad": "tech",
       "reportsTo": "tech-lead",
-      "model": "claude-haiku-3-5",
+      "model": "claude-sonnet-4-5",
       "openclawAgentId": null,
       "status": "planned",
       "color": "#f97316"
@@ -107,7 +107,7 @@
       "role": "Estratégia de marketing + SEO",
       "squad": "marketing",
       "reportsTo": "arthur-levi",
-      "model": "claude-sonnet-4-5",
+      "model": "claude-opus-4-6",
       "openclawAgentId": null,
       "status": "planned",
       "color": "#eab308"
@@ -119,7 +119,7 @@
       "role": "Blog do Surf Data + copywriting",
       "squad": "marketing",
       "reportsTo": "head-marketing",
-      "model": "claude-sonnet-4-5",
+      "model": "claude-opus-4-6",
       "openclawAgentId": null,
       "status": "planned",
       "color": "#a855f7"
@@ -131,7 +131,7 @@
       "role": "LinkedIn, posts diários, engajamento",
       "squad": "marketing",
       "reportsTo": "head-marketing",
-      "model": "claude-haiku-3-5",
+      "model": "claude-sonnet-4-5",
       "openclawAgentId": null,
       "status": "planned",
       "color": "#06b6d4"
