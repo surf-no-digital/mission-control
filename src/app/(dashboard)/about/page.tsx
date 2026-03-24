@@ -37,7 +37,7 @@ const skills = [
   { name: "Web Search", icon: Search, color: "#facc15" },
   { name: "File Management", icon: FileText, color: "#60a5fa" },
   { name: "Cron Scheduler", icon: Timer, color: "#f472b6" },
-  { name: "Memory System", icon: Brain, color: "#34d399" },
+  { name: "Sistema de Memória", icon: Brain, color: "#34d399" },
   { name: "YouTube Research", icon: Youtube, color: "#FF0000" },
   { name: "Email (Gmail)", icon: Mail, color: "#EA4335" },
 ];

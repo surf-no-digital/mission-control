@@ -135,7 +135,7 @@ export default function MemoryPage() {
             marginBottom: "4px",
           }}
         >
-          Memory Browser
+          Navegador de Memória
         </h1>
         <p style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--text-secondary)" }}>
           Ver y editar archivos de memoria de los agentes

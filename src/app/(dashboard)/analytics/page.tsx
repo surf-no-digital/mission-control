@@ -39,7 +39,7 @@ export default function AnalyticsPage() {
             className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
             style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }}
           />
-          <span style={{ color: "var(--text-secondary)" }}>Loading analytics...</span>
+          <span style={{ color: "var(--text-secondary)" }}>Carregando analytics...</span>
         </div>
       </div>
     );

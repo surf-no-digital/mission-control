@@ -21,19 +21,19 @@ import {
 
 const dockItems = [
   { href: "/", label: "Dashboard", icon: Home },
-  { href: "/system", label: "System Monitor", icon: Monitor },
-  { href: "/files", label: "Files", icon: FolderOpen },
-  { href: "/memory", label: "Memory", icon: Brain },
+  { href: "/system", label: "Monitor do Sistema", icon: Monitor },
+  { href: "/files", label: "Arquivos", icon: FolderOpen },
+  { href: "/memory", label: "Memória", icon: Brain },
   { href: "/agents", label: "Agents", icon: Bot },
   { href: "/office", label: "Office", icon: Building2 },
-  { href: "/activity", label: "Activity", icon: Activity },
+  { href: "/activity", label: "Atividade", icon: Activity },
   { href: "/kanban", label: "Kanban", icon: Columns3 },
   { href: "/integrations", label: "Integrações", icon: Plug },
-  { href: "/cron", label: "Cron Jobs", icon: Clock },
-  { href: "/sessions", label: "Sessions", icon: History },
+  { href: "/cron", label: "Tarefas Agendadas", icon: Clock },
+  { href: "/sessions", label: "Sessões", icon: History },
   { href: "/skills", label: "Skills", icon: Puzzle },
-  { href: "/costs", label: "Costs & Analytics", icon: DollarSign },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/costs", label: "Custos & Analytics", icon: DollarSign },
+  { href: "/settings", label: "Configurações", icon: Settings },
 ];
 
 export function Dock() {

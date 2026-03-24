@@ -52,7 +52,7 @@ export default function FilesPage() {
             marginBottom: "4px",
           }}
         >
-          File Browser
+          Navegador de Arquivos
         </h1>
         <p style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--text-secondary)" }}>
           Navega por los workspaces y archivos de los agentes

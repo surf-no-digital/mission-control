@@ -57,7 +57,7 @@ const ACTIONS: QuickAction[] = [
   {
     id: "clear-temp",
     label: "Clear Temp Files",
-    description: "Remove temporary files and trim large PM2 logs",
+    description: "Remover arquivos temporários e limpar logs do PM2",
     icon: Trash2,
     color: "var(--error)",
     dangerous: true,
@@ -120,7 +120,7 @@ export default function ActionsPage() {
           className="text-3xl font-bold mb-2"
           style={{ fontFamily: "var(--font-heading)", color: "var(--text-primary)" }}
         >
-          Quick Actions Hub
+          Ações Rápidas
         </h1>
         <p style={{ color: "var(--text-secondary)" }}>
           Run common maintenance and diagnostic tasks with one click

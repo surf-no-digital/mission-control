@@ -90,7 +90,7 @@ export default function LogsPage() {
     };
   }, []);
 
-  const handleClear = () => setLines([]);
+  const handleLimpar = () => setLines([]);
 
   const handleDownload = () => {
     const text = lines.map((l) => `[${l.ts}] ${l.line}`).join("\n");
@@ -182,8 +182,8 @@ export default function LogsPage() {
             ↓ Auto
           </button>
 
-          {/* Clear */}
-          <button onClick={handleClear} title="Clear"
+          {/* Limpar */}
+          <button onClick={handleLimpar} title="Limpar"
             style={{ padding: "0.375rem 0.625rem", borderRadius: "0.5rem", background: "var(--card-elevated)", border: "1px solid var(--border)", cursor: "pointer", color: "var(--text-muted)" }}>
             <Trash2 className="w-3.5 h-3.5" />
           </button>

@@ -143,7 +143,7 @@ export default function SystemMonitorPage() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: "var(--accent)" }}></div>
-          <p style={{ color: "var(--text-secondary)" }}>Loading system data...</p>
+          <p style={{ color: "var(--text-secondary)" }}>Carregando sistema data...</p>
         </div>
       </div>
     );
@@ -165,7 +165,7 @@ export default function SystemMonitorPage() {
   const ramColor = ramPercent < 60 ? "var(--success)" : ramPercent < 85 ? "var(--warning)" : "var(--error)";
   const diskColor = systemData.disk.percent < 60 ? "var(--success)" : systemData.disk.percent < 85 ? "var(--warning)" : "var(--error)";
 
-  const activeServices = systemData.systemd.filter((s) => s.status === "active").length;
+  const activeServiços = systemData.systemd.filter((s) => s.status === "active").length;
 
   return (
     <div className="space-y-6">
@@ -188,7 +188,7 @@ export default function SystemMonitorPage() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-heading)", color: "var(--text-primary)" }}>
-            System Monitor
+            Monitor do Sistema
           </h1>
           <p style={{ color: "var(--text-secondary)" }}>Real-time monitoring of server resources and services</p>
         </div>
@@ -205,7 +205,7 @@ export default function SystemMonitorPage() {
 
       {/* Tabs */}
       <div className="flex gap-2 border-b" style={{ borderColor: "var(--border)" }}>
-        {[{ id: "hardware", label: "Hardware", icon: Cpu }, { id: "services", label: "Services", icon: Server }].map((tab) => {
+        {[{ id: "hardware", label: "Hardware", icon: Cpu }, { id: "services", label: "Serviços", icon: Server }].map((tab) => {
           const Icon = tab.icon;
           const isActive = selectedTab === tab.id;
           return (
@@ -286,14 +286,14 @@ export default function SystemMonitorPage() {
             </div>
           </div>
 
-          {/* Network */}
+          {/* Rede */}
           <div className="p-6 rounded-xl" style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}>
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-lg" style={{ backgroundColor: "var(--card-elevated)" }}>
                 <Network className="w-5 h-5" style={{ color: "var(--info, #3b82f6)" }} />
               </div>
               <div>
-                <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Network</h3>
+                <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Rede</h3>
                 <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Live I/O</p>
               </div>
             </div>
@@ -332,14 +332,14 @@ export default function SystemMonitorPage() {
         </div>
       )}
 
-      {/* Services Tab */}
+      {/* Serviços Tab */}
       {selectedTab === "services" && (
         <div className="space-y-6">
-          {/* Systemd + PM2 Services */}
+          {/* Systemd + PM2 Serviços */}
           <div className="p-6 rounded-xl" style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}>
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
               <Server className="w-5 h-5" style={{ color: "var(--accent)" }} />
-              Services ({activeServices}/{systemData.systemd.length} active)
+              Serviços ({activeServiços}/{systemData.systemd.length} active)
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full">

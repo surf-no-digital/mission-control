@@ -30,17 +30,19 @@ export async function PATCH(
 
     let wakeup_triggered = false;
     if (result.wakeup && result.card.assignee_agent_id) {
-      wakeup_triggered = wakeupAgent(
+      const wakeupResult = wakeupAgent(
         result.card.assignee_agent_id,
         {
           id: result.card.id,
           title: result.card.title,
           description: result.card.description,
           priority: result.card.priority,
+          assignee_agent_id: result.card.assignee_agent_id,
         },
         result.previousColumnId,
         result.targetColumnName
       );
+      wakeup_triggered = wakeupResult.success;
     }
 
     logCardActivity(id, 'diogo', 'moved', {
