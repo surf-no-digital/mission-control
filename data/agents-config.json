@@ -1,0 +1,140 @@
+{
+  "squads": [
+    {
+      "id": "tech",
+      "name": "Squad Tech",
+      "emoji": "🛠️",
+      "color": "#3b82f6",
+      "leadAgentId": "tech-lead"
+    },
+    {
+      "id": "marketing",
+      "name": "Squad Marketing",
+      "emoji": "📢",
+      "color": "#f59e0b",
+      "leadAgentId": "head-marketing"
+    }
+  ],
+  "agents": [
+    {
+      "id": "arthur-levi",
+      "name": "Arthur Levi",
+      "emoji": "🏄",
+      "role": "Orquestrador Principal",
+      "squad": null,
+      "reportsTo": null,
+      "model": "claude-opus-4-6",
+      "openclawAgentId": "main",
+      "status": "online",
+      "color": "#0ea5e9"
+    },
+    {
+      "id": "tech-lead",
+      "name": "Tech Lead",
+      "emoji": "🧑‍💻",
+      "role": "Diretrizes técnicas, arquitetura, code review",
+      "squad": "tech",
+      "reportsTo": "arthur-levi",
+      "model": "claude-sonnet-4-5",
+      "openclawAgentId": null,
+      "status": "planned",
+      "color": "#6366f1"
+    },
+    {
+      "id": "pm",
+      "name": "PM",
+      "emoji": "📋",
+      "role": "Roadmap, priorização de features",
+      "squad": "tech",
+      "reportsTo": "arthur-levi",
+      "model": "claude-sonnet-4-5",
+      "openclawAgentId": null,
+      "status": "planned",
+      "color": "#8b5cf6"
+    },
+    {
+      "id": "po",
+      "name": "PO",
+      "emoji": "✅",
+      "role": "Backlog, requisitos, critérios de aceite",
+      "squad": "tech",
+      "reportsTo": "arthur-levi",
+      "model": "claude-sonnet-4-5",
+      "openclawAgentId": null,
+      "status": "planned",
+      "color": "#14b8a6"
+    },
+    {
+      "id": "dev-fullstack",
+      "name": "Dev Full Stack",
+      "emoji": "💻",
+      "role": "Implementação de features (React/Next.js + Node)",
+      "squad": "tech",
+      "reportsTo": "tech-lead",
+      "model": "claude-sonnet-4-5",
+      "openclawAgentId": null,
+      "status": "planned",
+      "color": "#22c55e"
+    },
+    {
+      "id": "ui-ux-designer",
+      "name": "UI/UX Designer",
+      "emoji": "🎨",
+      "role": "Design de telas, protótipos, design system",
+      "squad": "tech",
+      "reportsTo": "tech-lead",
+      "model": "claude-sonnet-4-5",
+      "openclawAgentId": null,
+      "status": "planned",
+      "color": "#ec4899"
+    },
+    {
+      "id": "qa",
+      "name": "QA",
+      "emoji": "🔍",
+      "role": "Testes, reporte de bugs, qualidade",
+      "squad": "tech",
+      "reportsTo": "tech-lead",
+      "model": "claude-haiku-3-5",
+      "openclawAgentId": null,
+      "status": "planned",
+      "color": "#f97316"
+    },
+    {
+      "id": "head-marketing",
+      "name": "Head de Marketing",
+      "emoji": "📈",
+      "role": "Estratégia de marketing + SEO",
+      "squad": "marketing",
+      "reportsTo": "arthur-levi",
+      "model": "claude-sonnet-4-5",
+      "openclawAgentId": null,
+      "status": "planned",
+      "color": "#eab308"
+    },
+    {
+      "id": "content-creator",
+      "name": "Content Creator",
+      "emoji": "✍️",
+      "role": "Blog do Surf Data + copywriting",
+      "squad": "marketing",
+      "reportsTo": "head-marketing",
+      "model": "claude-sonnet-4-5",
+      "openclawAgentId": null,
+      "status": "planned",
+      "color": "#a855f7"
+    },
+    {
+      "id": "social-media-manager",
+      "name": "Social Media Manager",
+      "emoji": "📱",
+      "role": "LinkedIn, posts diários, engajamento",
+      "squad": "marketing",
+      "reportsTo": "head-marketing",
+      "model": "claude-haiku-3-5",
+      "openclawAgentId": null,
+      "status": "planned",
+      "color": "#06b6d4"
+    }
+  ]
+}
