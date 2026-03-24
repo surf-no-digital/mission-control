@@ -6,7 +6,7 @@ const JWT_EXPIRY = '7d';
 
 export async function verifyPassword(password: string): Promise<boolean> {
   const hashedPassword = process.env.HASHED_PASSWORD;
-  if (hashedPassword) {
+  if (hashedPassword && hashedPassword.startsWith('$2')) {
     return bcrypt.compare(password, hashedPassword);
   }
   // Fallback to plaintext comparison for backward compatibility
