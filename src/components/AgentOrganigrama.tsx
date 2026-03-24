@@ -8,9 +8,9 @@ interface Agent {
   emoji: string;
   color: string;
   model: string;
-  allowAgents: string[];
+  allowAgents?: string[];
   allowAgentsDetails?: Array<{ id: string; name: string; emoji: string; color: string }>;
-  status: "online" | "offline";
+  status: "online" | "offline" | "planned";
   activeSessions: number;
 }
 

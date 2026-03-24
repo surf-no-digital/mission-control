@@ -35,6 +35,13 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
     }
 
+    // Block sensitive paths
+    const BLOCKED_WRITE_PATTERNS = ['.secrets', '.env', 'node_modules', '.git/'];
+    const relativePath = fullPath.replace(base, '');
+    if (BLOCKED_WRITE_PATTERNS.some(p => relativePath.includes(p))) {
+      return NextResponse.json({ error: 'Cannot modify protected path' }, { status: 403 });
+    }
+
     const filename = path.basename(fullPath);
     if (PROTECTED.includes(filename)) {
       return NextResponse.json({ error: `Cannot delete protected file: ${filename}` }, { status: 403 });

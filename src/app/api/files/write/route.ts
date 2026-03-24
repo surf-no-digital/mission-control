@@ -34,6 +34,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
     }
 
+    // Block sensitive paths
+    const BLOCKED_WRITE_PATTERNS = ['.secrets', '.env', 'node_modules', '.git/'];
+    const relativePath = fullPath.replace(base, '');
+    if (BLOCKED_WRITE_PATTERNS.some(p => relativePath.includes(p))) {
+      return NextResponse.json({ error: 'Cannot write to protected path' }, { status: 403 });
+    }
+
     // Create parent directories if needed
     await fs.mkdir(path.dirname(fullPath), { recursive: true });
     await fs.writeFile(fullPath, content, 'utf-8');

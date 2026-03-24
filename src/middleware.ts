@@ -9,7 +9,24 @@ const PUBLIC_API_PREFIXES = ["/api/auth/", "/api/health"];
 
 function isAuthenticated(request: NextRequest): boolean {
   const authCookie = request.cookies.get("mc_auth");
-  return !!(authCookie && authCookie.value === process.env.AUTH_SECRET);
+  if (!authCookie?.value) return false;
+
+  try {
+    // JWT basic validation (Edge-compatible, no require('jsonwebtoken'))
+    // Full verification happens in API routes; middleware does structural check
+    const parts = authCookie.value.split('.');
+    if (parts.length !== 3) return false;
+
+    // Decode payload and check expiration
+    const payload = JSON.parse(atob(parts[1]));
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      return false; // Token expired
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function middleware(request: NextRequest) {

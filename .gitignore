@@ -37,6 +37,7 @@ yarn-error.log*
 # production data (contains instance-specific operational data)
 /data/*.json
 !data/*.example.json
+!data/agents-config.json
 /data/*.db
 /data/*.sqlite
 /data/*.sqlite3

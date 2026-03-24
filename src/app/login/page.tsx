@@ -30,10 +30,10 @@ function LoginForm() {
         router.push(from);
         router.refresh();
       } else {
-        setError("Contraseña incorrecta");
+        setError("Senha incorreta");
       }
     } catch {
-      setError("Error de conexión");
+      setError("Erro de conexão");
     }
 
     setLoading(false);
@@ -54,7 +54,7 @@ function LoginForm() {
             className="w-7 h-7" 
             style={{ color: 'var(--accent)' }} 
           />
-          <span className="text-2xl">🦞</span>
+          <span className="text-2xl">🏄</span>
           <h1 
             className="text-xl font-bold"
             style={{ 
@@ -70,7 +70,7 @@ function LoginForm() {
           className="text-sm"
           style={{ color: 'var(--text-secondary)' }}
         >
-          Introduce la contraseña para acceder
+          Digite a senha para acessar
         </p>
       </div>
 
@@ -91,7 +91,7 @@ function LoginForm() {
               border: '1px solid var(--border)',
               color: 'var(--text-primary)',
             }}
-            placeholder="Contraseña"
+            placeholder="Senha"
             required
           />
         </div>
@@ -127,7 +127,7 @@ function LoginForm() {
         className="text-center text-xs mt-6"
         style={{ color: 'var(--text-muted)' }}
       >
-        Tenacitas Agent Dashboard
+        Surf Command Center
       </p>
     </div>
   );
