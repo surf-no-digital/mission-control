@@ -17,13 +17,17 @@ import { AgentOrganigrama } from "@/components/AgentOrganigrama";
 
 interface Agent {
   id: string;
+  configId?: string;
   name: string;
   emoji: string;
   color: string;
   model: string;
   workspace: string;
+  role?: string;
+  squad?: string | null;
+  reportsTo?: string | null;
   dmPolicy?: string;
-  allowAgents: string[];
+  allowAgents?: string[];
   allowAgentsDetails?: Array<{
     id: string;
     name: string;
@@ -31,13 +35,22 @@ interface Agent {
     color: string;
   }>;
   botToken?: string;
-  status: "online" | "offline";
+  status: "online" | "offline" | "planned";
   lastActivity?: string;
   activeSessions: number;
 }
 
+interface Squad {
+  id: string;
+  name: string;
+  emoji: string;
+  color: string;
+}
+
 export default function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [squads, setSquads] = useState<Squad[]>([]);
+  const [squadFilter, setSquadFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"cards" | "organigrama">("cards");
 
@@ -52,6 +65,7 @@ export default function AgentsPage() {
       const res = await fetch("/api/agents");
       const data = await res.json();
       setAgents(data.agents || []);
+      setSquads(data.squads || []);
     } catch (error) {
       console.error("Error fetching agents:", error);
     } finally {
@@ -72,6 +86,10 @@ export default function AgentsPage() {
     const days = Math.floor(hours / 24);
     return `${days}d ago`;
   };
+
+  const filteredAgents = squadFilter
+    ? agents.filter(a => a.squad === squadFilter)
+    : agents;
 
   if (loading) {
     return (
@@ -103,6 +121,33 @@ export default function AgentsPage() {
         <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
           Multi-agent system overview • {agents.length} agents configured
         </p>
+      </div>
+
+      {/* Squad Filter */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <button
+          onClick={() => setSquadFilter(null)}
+          className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+          style={!squadFilter
+            ? { background: 'var(--accent)', color: 'white' }
+            : { background: 'var(--card)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }
+          }
+        >
+          Todos
+        </button>
+        {squads.map(s => (
+          <button
+            key={s.id}
+            onClick={() => setSquadFilter(s.id)}
+            className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            style={squadFilter === s.id
+              ? { background: s.color, color: 'white' }
+              : { background: 'var(--card)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }
+            }
+          >
+            {s.emoji} {s.name}
+          </button>
+        ))}
       </div>
 
       {/* Tab switcher */}
@@ -138,14 +183,14 @@ export default function AgentsPage() {
             <h2 className="font-semibold" style={{ color: "var(--text-primary)" }}>Agent Hierarchy</h2>
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>Visualization of agent communication allowances</p>
           </div>
-          <AgentOrganigrama agents={agents} />
+          <AgentOrganigrama agents={filteredAgents} />
         </div>
       )}
 
       {/* Agents Grid */}
       {activeTab === "cards" && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {agents.map((agent) => (
+        {filteredAgents.map((agent) => (
           <div
             key={agent.id}
             className="rounded-xl overflow-hidden transition-all hover:scale-[1.02]"
@@ -182,12 +227,15 @@ export default function AgentsPage() {
                   >
                     {agent.name}
                   </h3>
+                  {agent.role && (
+                    <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>{agent.role}</p>
+                  )}
                   <div className="flex items-center gap-2 mt-1">
                     <Circle
                       className="w-2 h-2"
                       style={{
-                        fill: agent.status === "online" ? "#4ade80" : "#6b7280",
-                        color: agent.status === "online" ? "#4ade80" : "#6b7280",
+                        fill: agent.status === "online" ? "#4ade80" : agent.status === "planned" ? "#fbbf24" : "#6b7280",
+                        color: agent.status === "online" ? "#4ade80" : agent.status === "planned" ? "#fbbf24" : "#6b7280",
                       }}
                     />
                     <span
@@ -196,11 +244,18 @@ export default function AgentsPage() {
                         color:
                           agent.status === "online"
                             ? "#4ade80"
+                            : agent.status === "planned"
+                            ? "#fbbf24"
                             : "var(--text-muted)",
                       }}
                     >
                       {agent.status}
                     </span>
+                    {agent.status === 'planned' && (
+                      <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: '#fbbf24', color: '#000' }}>
+                        Planejado
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -284,7 +339,7 @@ export default function AgentsPage() {
               )}
 
               {/* Subagents */}
-              {agent.allowAgents.length > 0 && (
+              {agent.allowAgents && agent.allowAgents.length > 0 && (
                 <div className="flex items-start gap-3">
                   <Users
                     className="w-4 h-4 mt-0.5"
