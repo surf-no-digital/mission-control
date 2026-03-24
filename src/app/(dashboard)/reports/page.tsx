@@ -30,20 +30,20 @@ function formatDate(iso: string): string {
   });
 }
 
-export default function ReportsPage() {
-  const [reports, setReports] = useState<Report[]>([]);
+export default function RelatóriosPage() {
+  const [reports, setRelatórios] = useState<Report[]>([]);
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
 
-  const loadReports = useCallback(async () => {
+  const loadRelatórios = useCallback(async () => {
     try {
       setIsLoading(true);
       const res = await fetch("/api/reports");
       if (!res.ok) throw new Error("Failed to load reports");
       const data = await res.json();
-      setReports(data);
+      setRelatórios(data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -75,8 +75,8 @@ export default function ReportsPage() {
   );
 
   useEffect(() => {
-    loadReports();
-  }, [loadReports]);
+    loadRelatórios();
+  }, [loadRelatórios]);
 
   // Auto-select first report
   useEffect(() => {
@@ -105,7 +105,7 @@ export default function ReportsPage() {
                 fontFamily: "var(--font-heading)",
               }}
             >
-              Reports
+              Relatórios
             </h1>
             <p className="text-xs md:text-sm hidden sm:block" style={{ color: "var(--text-secondary)" }}>
               Analysis reports and insights
@@ -113,7 +113,7 @@ export default function ReportsPage() {
           </div>
         </div>
         <button
-          onClick={loadReports}
+          onClick={loadRelatórios}
           className="p-2 rounded-lg transition-colors hover:opacity-80"
           style={{ color: "var(--text-secondary)" }}
           title="Refresh reports"
@@ -141,16 +141,16 @@ export default function ReportsPage() {
               className="text-sm font-semibold uppercase tracking-wide"
               style={{ color: "var(--text-secondary)" }}
             >
-              {isLoading ? "Loading..." : `${reports.length} Reports`}
+              {isLoading ? "Loading..." : `${reports.length} Relatórios`}
             </h2>
           </div>
 
           {!isLoading && reports.length === 0 && (
             <div className="p-6 text-center" style={{ color: "var(--text-muted)" }}>
               <FileBarChart className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>No reports found</p>
+              <p>Nenhum relatório found</p>
               <p className="text-xs mt-1">
-                Reports matching *-analysis-* or *-report-* patterns in memory/ will appear here
+                Relatórios matching *-analysis-* or *-report-* patterns in memory/ will appear here
               </p>
             </div>
           )}

@@ -75,7 +75,7 @@ export default function SettingsPage() {
             style={{ color: "var(--text-primary)", fontFamily: "var(--font-heading)" }}
           >
             <Settings className="w-6 h-6 md:w-8 md:h-8" style={{ color: "var(--accent)" }} />
-            Settings
+            Configurações
           </h1>
           <p className="text-sm md:text-base" style={{ color: "var(--text-secondary)" }}>
             System status, integrations, and configuration

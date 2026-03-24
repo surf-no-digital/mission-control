@@ -234,7 +234,7 @@ export default function WorkflowsPage() {
           color: "var(--text-primary)",
           marginBottom: "4px",
         }}>
-          Workflows
+          Fluxos de Trabalho
         </h1>
         <p style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--text-secondary)" }}>
           {WORKFLOWS.filter(w => w.status === "active").length} flujos activos · {WORKFLOWS.filter(w => w.trigger === "cron").length} crons automáticos · {WORKFLOWS.filter(w => w.trigger === "demand").length} bajo demanda

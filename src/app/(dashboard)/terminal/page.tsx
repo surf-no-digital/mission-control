@@ -178,7 +178,7 @@ export default function TerminalPage() {
         {history.length === 0 ? (
           <div style={{ color: "#8b949e", textAlign: "center", paddingTop: "2rem" }}>
             <Terminal className="w-8 h-8 mx-auto mb-2 opacity-30" />
-            <p>Type a command or click a quick command above</p>
+            <p>Digite um comando or click a quick command above</p>
             <p style={{ fontSize: "0.7rem", marginTop: "0.5rem" }}>
               Arrow Up/Down for command history
             </p>
