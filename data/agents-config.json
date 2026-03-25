@@ -72,8 +72,8 @@
       "squad": "tech",
       "reportsTo": "tech-lead",
       "model": "claude-opus-4-6",
-      "openclawAgentId": null,
-      "status": "planned",
+      "openclawAgentId": "dev-fullstack",
+      "status": "online",
       "color": "#22c55e"
     },
     {
