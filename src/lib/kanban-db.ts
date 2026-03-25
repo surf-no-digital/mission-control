@@ -41,6 +41,39 @@ export interface Card {
   labels: string;
   due_date: string | null;
   created_by: string;
+  github_repo: string | null;
+  github_issue_number: number | null;
+  github_synced: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Label {
+  id: string;
+  name: string;
+  color: string;
+  type: 'area' | 'project' | 'custom';
+  board_id: string;
+  created_at: string;
+}
+
+export interface CardLabel {
+  card_id: string;
+  label_id: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  github_repo: string;
+  github_default_branch: string;
+  language: string;
+  production_url: string | null;
+  vercel_project_id: string | null;
+  last_push_at: string | null;
+  issue_count_open: number;
+  issue_count_closed: number;
   created_at: string;
   updated_at: string;
 }
@@ -172,7 +205,55 @@ export function getKanbanDb(): Database.Database {
     CREATE INDEX IF NOT EXISTS idx_comments_card ON card_comments(card_id, created_at);
     CREATE INDEX IF NOT EXISTS idx_attachments_card ON card_attachments(card_id);
     CREATE INDEX IF NOT EXISTS idx_activity_card ON card_activity(card_id, created_at);
+
+    -- Labels system
+    CREATE TABLE IF NOT EXISTS labels (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      color TEXT NOT NULL DEFAULT '#6b7280',
+      type TEXT NOT NULL DEFAULT 'custom' CHECK(type IN ('area', 'project', 'custom')),
+      board_id TEXT NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS card_labels (
+      card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+      label_id TEXT NOT NULL REFERENCES labels(id) ON DELETE CASCADE,
+      PRIMARY KEY (card_id, label_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_labels_board ON labels(board_id);
+    CREATE INDEX IF NOT EXISTS idx_card_labels_card ON card_labels(card_id);
+    CREATE INDEX IF NOT EXISTS idx_card_labels_label ON card_labels(label_id);
+
+    -- Projects
+    CREATE TABLE IF NOT EXISTS projects (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      github_repo TEXT NOT NULL UNIQUE,
+      github_default_branch TEXT DEFAULT 'main',
+      language TEXT DEFAULT '',
+      production_url TEXT,
+      vercel_project_id TEXT,
+      last_push_at TEXT,
+      issue_count_open INTEGER DEFAULT 0,
+      issue_count_closed INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
+
+  // Add github columns to cards if they don't exist
+  try {
+    _db.exec(`ALTER TABLE cards ADD COLUMN github_repo TEXT`);
+  } catch { /* column already exists */ }
+  try {
+    _db.exec(`ALTER TABLE cards ADD COLUMN github_issue_number INTEGER`);
+  } catch { /* column already exists */ }
+  try {
+    _db.exec(`ALTER TABLE cards ADD COLUMN github_synced INTEGER DEFAULT 0`);
+  } catch { /* column already exists */ }
 
   // Seed default board if no boards exist
   const boardCount = (_db.prepare('SELECT COUNT(*) as n FROM boards').get() as { n: number }).n;
@@ -180,7 +261,43 @@ export function getKanbanDb(): Database.Database {
     seedDefaultBoard(_db);
   }
 
+  // Seed default labels if none exist
+  const labelCount = (_db.prepare('SELECT COUNT(*) as n FROM labels').get() as { n: number }).n;
+  if (labelCount === 0) {
+    seedDefaultLabels(_db);
+  }
+
   return _db;
+}
+
+function seedDefaultLabels(db: Database.Database): void {
+  // Find the first board to attach labels to
+  const board = db.prepare('SELECT id FROM boards LIMIT 1').get() as { id: string } | undefined;
+  if (!board) return;
+
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  const insertLabel = db.prepare(
+    'INSERT INTO labels (id, name, color, type, board_id, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+  );
+
+  const defaultLabels = [
+    // Áreas
+    { name: 'dev', color: '#3b82f6', type: 'area' },
+    { name: 'marketing', color: '#8b5cf6', type: 'area' },
+    { name: 'vendas', color: '#10b981', type: 'area' },
+    { name: 'design', color: '#ec4899', type: 'area' },
+    { name: 'infra', color: '#6b7280', type: 'area' },
+    // Projetos
+    { name: '#segurarn', color: '#f97316', type: 'project' },
+    { name: '#surfdata', color: '#06b6d4', type: 'project' },
+    { name: '#lojaz', color: '#eab308', type: 'project' },
+    { name: '#inflx', color: '#ef4444', type: 'project' },
+    { name: '#surfnodigital', color: '#1e3a5f', type: 'project' },
+  ];
+
+  for (const label of defaultLabels) {
+    insertLabel.run(randomUUID(), label.name, label.color, label.type, board.id, now);
+  }
 }
 
 function seedDefaultBoard(db: Database.Database): void {
@@ -375,8 +492,8 @@ export function createCard(
   ).get(columnId) as { max_pos: number }).max_pos;
 
   db.prepare(`
-    INSERT INTO cards (id, column_id, board_id, title, description, position, priority, assignee_agent_id, labels, due_date, created_by, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO cards (id, column_id, board_id, title, description, position, priority, assignee_agent_id, labels, due_date, created_by, github_repo, github_issue_number, github_synced, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     id,
     columnId,
@@ -389,6 +506,9 @@ export function createCard(
     fields?.labels ?? '[]',
     fields?.due_date ?? null,
     fields?.created_by ?? 'diogo',
+    fields?.github_repo ?? null,
+    fields?.github_issue_number ?? null,
+    fields?.github_synced ?? 0,
     now,
     now
   );
@@ -407,6 +527,7 @@ export function updateCard(id: string, fields: Partial<Card>): Card | null {
   const allowedFields: Array<keyof Card> = [
     'column_id', 'board_id', 'title', 'description', 'position',
     'priority', 'assignee_agent_id', 'labels', 'due_date', 'created_by',
+    'github_repo', 'github_issue_number', 'github_synced',
   ];
 
   for (const field of allowedFields) {
@@ -538,4 +659,178 @@ export function logCardActivity(
   db.prepare(
     'INSERT INTO card_activity (id, card_id, actor_id, action, details, created_at) VALUES (?, ?, ?, ?, ?, ?)'
   ).run(id, cardId, actorId, action, JSON.stringify(details ?? {}), now);
+}
+
+// ─── Labels ──────────────────────────────────────────────────────────────────
+
+export function listLabels(boardId: string): Label[] {
+  const db = getKanbanDb();
+  return db.prepare('SELECT * FROM labels WHERE board_id = ? ORDER BY type ASC, name ASC').all(boardId) as Label[];
+}
+
+export function createLabel(boardId: string, name: string, color: string, type: string): Label {
+  const db = getKanbanDb();
+  const id = randomUUID();
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  db.prepare(
+    'INSERT INTO labels (id, name, color, type, board_id, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+  ).run(id, name, color, type || 'custom', boardId, now);
+  return db.prepare('SELECT * FROM labels WHERE id = ?').get(id) as Label;
+}
+
+export function deleteLabel(id: string): boolean {
+  const db = getKanbanDb();
+  const result = db.prepare('DELETE FROM labels WHERE id = ?').run(id);
+  return result.changes > 0;
+}
+
+export function getCardLabels(cardId: string): Label[] {
+  const db = getKanbanDb();
+  return db.prepare(`
+    SELECT l.* FROM labels l
+    JOIN card_labels cl ON cl.label_id = l.id
+    WHERE cl.card_id = ?
+    ORDER BY l.type ASC, l.name ASC
+  `).all(cardId) as Label[];
+}
+
+export function addCardLabel(cardId: string, labelId: string): void {
+  const db = getKanbanDb();
+  try {
+    db.prepare('INSERT INTO card_labels (card_id, label_id) VALUES (?, ?)').run(cardId, labelId);
+  } catch {
+    // already exists (unique constraint)
+  }
+}
+
+export function removeCardLabel(cardId: string, labelId: string): void {
+  const db = getKanbanDb();
+  db.prepare('DELETE FROM card_labels WHERE card_id = ? AND label_id = ?').run(cardId, labelId);
+}
+
+export function getCardsWithLabels(boardId: string): Array<{ card_id: string; labels: Label[] }> {
+  const db = getKanbanDb();
+  const rows = db.prepare(`
+    SELECT cl.card_id, l.id, l.name, l.color, l.type, l.board_id, l.created_at
+    FROM card_labels cl
+    JOIN labels l ON l.id = cl.label_id
+    JOIN cards c ON c.id = cl.card_id
+    WHERE c.board_id = ?
+  `).all(boardId) as Array<Label & { card_id: string }>;
+
+  const map = new Map<string, Label[]>();
+  for (const row of rows) {
+    const { card_id, ...label } = row;
+    if (!map.has(card_id)) map.set(card_id, []);
+    map.get(card_id)!.push(label);
+  }
+  return Array.from(map.entries()).map(([card_id, labels]) => ({ card_id, labels }));
+}
+
+// ─── Projects ────────────────────────────────────────────────────────────────
+
+export function listProjects(): Project[] {
+  const db = getKanbanDb();
+  return db.prepare('SELECT * FROM projects ORDER BY name ASC').all() as Project[];
+}
+
+export function getProject(id: string): Project | null {
+  const db = getKanbanDb();
+  return (db.prepare('SELECT * FROM projects WHERE id = ?').get(id) as Project | undefined) ?? null;
+}
+
+export function getProjectByRepo(githubRepo: string): Project | null {
+  const db = getKanbanDb();
+  return (db.prepare('SELECT * FROM projects WHERE github_repo = ?').get(githubRepo) as Project | undefined) ?? null;
+}
+
+export function createProject(fields: {
+  name: string;
+  description?: string;
+  github_repo: string;
+  github_default_branch?: string;
+  language?: string;
+  production_url?: string;
+  vercel_project_id?: string;
+  last_push_at?: string;
+  issue_count_open?: number;
+  issue_count_closed?: number;
+}): Project {
+  const db = getKanbanDb();
+  const id = randomUUID();
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  db.prepare(`
+    INSERT INTO projects (id, name, description, github_repo, github_default_branch, language, production_url, vercel_project_id, last_push_at, issue_count_open, issue_count_closed, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    id,
+    fields.name,
+    fields.description ?? '',
+    fields.github_repo,
+    fields.github_default_branch ?? 'main',
+    fields.language ?? '',
+    fields.production_url ?? null,
+    fields.vercel_project_id ?? null,
+    fields.last_push_at ?? null,
+    fields.issue_count_open ?? 0,
+    fields.issue_count_closed ?? 0,
+    now,
+    now
+  );
+  return db.prepare('SELECT * FROM projects WHERE id = ?').get(id) as Project;
+}
+
+export function updateProject(id: string, fields: Partial<Project>): Project | null {
+  const db = getKanbanDb();
+  const existing = db.prepare('SELECT * FROM projects WHERE id = ?').get(id);
+  if (!existing) return null;
+
+  const sets: string[] = [];
+  const params: unknown[] = [];
+  const allowed: Array<keyof Project> = [
+    'name', 'description', 'github_default_branch', 'language',
+    'production_url', 'vercel_project_id', 'last_push_at',
+    'issue_count_open', 'issue_count_closed',
+  ];
+  for (const f of allowed) {
+    if (fields[f] !== undefined) {
+      sets.push(`${f} = ?`);
+      params.push(fields[f]);
+    }
+  }
+  if (sets.length === 0) return getProject(id);
+  sets.push("updated_at = datetime('now')");
+  params.push(id);
+  db.prepare(`UPDATE projects SET ${sets.join(', ')} WHERE id = ?`).run(...params);
+  return getProject(id);
+}
+
+export function createCardWithGitHub(
+  columnId: string,
+  boardId: string,
+  title: string,
+  description: string,
+  githubRepo: string,
+  githubIssueNumber: number
+): Card {
+  const db = getKanbanDb();
+  const id = randomUUID();
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  const maxPos = (db.prepare(
+    'SELECT COALESCE(MAX(position), -1) as max_pos FROM cards WHERE column_id = ?'
+  ).get(columnId) as { max_pos: number }).max_pos;
+
+  db.prepare(`
+    INSERT INTO cards (id, column_id, board_id, title, description, position, priority, labels, created_by, github_repo, github_issue_number, github_synced, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, 'medium', '[]', 'github-sync', ?, ?, 1, ?, ?)
+  `).run(id, columnId, boardId, title, description, maxPos + 1, githubRepo, githubIssueNumber, now, now);
+
+  return db.prepare('SELECT * FROM cards WHERE id = ?').get(id) as Card;
+}
+
+export function findCardByGitHubIssue(githubRepo: string, issueNumber: number): Card | null {
+  const db = getKanbanDb();
+  return (db.prepare(
+    'SELECT * FROM cards WHERE github_repo = ? AND github_issue_number = ?'
+  ).get(githubRepo, issueNumber) as Card | undefined) ?? null;
 }

@@ -43,7 +43,8 @@ const navItems = [
   { href: "/git", label: "Git", icon: GitFork },
   { href: "/workflows", label: "Workflows", icon: Workflow },
   { href: "/activity", label: "Activity", icon: Activity },
-  { href: "/kanban", label: "Kanban", icon: Columns3 },
+  { href: "/kanban/f011ed3b-19f7-4d05-a1c9-70417520d9cf", label: "Kanban", icon: Columns3 },
+  { href: "/projects", label: "Projects", icon: GitBranch },
   { href: "/memory", label: "Memory", icon: Brain },
   { href: "/files", label: "Files", icon: FolderOpen },
   { href: "/cron", label: "Cron Jobs", icon: Timer },
@@ -218,7 +219,7 @@ export function Sidebar() {
         <nav className="flex-1 pt-4">
           <ul className="space-y-0.5">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (item.href.startsWith('/kanban/') && pathname.startsWith('/kanban/'));
               const Icon = item.icon;
 
               return (

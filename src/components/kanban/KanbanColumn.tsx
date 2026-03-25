@@ -27,8 +27,17 @@ interface Card {
   assignee_agent_id: string | null;
   labels: string;
   due_date: string | null;
+  github_repo: string | null;
+  github_issue_number: number | null;
   comment_count?: number;
   attachment_count?: number;
+}
+
+interface Label {
+  id: string;
+  name: string;
+  color: string;
+  type: string;
 }
 
 interface KanbanColumnProps {
@@ -38,6 +47,7 @@ interface KanbanColumnProps {
   onCardCreated: () => void;
   onCardClick: (cardId: string) => void;
   onColumnUpdated: () => void;
+  cardLabelsMap?: Record<string, Label[]>;
 }
 
 export function KanbanColumn({
@@ -47,6 +57,7 @@ export function KanbanColumn({
   onCardCreated,
   onCardClick,
   onColumnUpdated,
+  cardLabelsMap = {},
 }: KanbanColumnProps) {
   const [showNewCard, setShowNewCard] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -278,7 +289,12 @@ export function KanbanColumn({
       >
         <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
           {cards.map((card) => (
-            <KanbanCard key={card.id} card={card} onClick={() => onCardClick(card.id)} />
+            <KanbanCard
+              key={card.id}
+              card={card}
+              onClick={() => onCardClick(card.id)}
+              cardLabels={cardLabelsMap[card.id] || []}
+            />
           ))}
         </SortableContext>
       </div>

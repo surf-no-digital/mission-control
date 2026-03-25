@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getBoard, listColumns, listCards, updateBoard, deleteBoard } from '@/lib/kanban-db';
+import { getBoard, listColumns, listCards, updateBoard, deleteBoard, getCardsWithLabels, listLabels } from '@/lib/kanban-db';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +15,9 @@ export async function GET(
     }
     const columns = listColumns(id);
     const cards = listCards(id);
-    return NextResponse.json({ board, columns, cards });
+    const cardLabelsMap = getCardsWithLabels(id);
+    const labels = listLabels(id);
+    return NextResponse.json({ board, columns, cards, cardLabelsMap, labels });
   } catch (error) {
     console.error('[kanban] Failed to get board:', error);
     return NextResponse.json({ error: 'Failed to get board' }, { status: 500 });

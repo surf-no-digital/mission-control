@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Check, X } from "lucide-react";
+import { LayoutGrid, Check, X } from "lucide-react";
 
 interface Board {
   id: string;
@@ -53,7 +53,8 @@ export function BoardHeader({ board, onUpdate }: BoardHeaderProps) {
       }}
     >
       <button
-        onClick={() => router.push("/kanban")}
+        onClick={() => router.push("/kanban/boards")}
+        title="Todos os boards"
         style={{
           background: "none",
           border: "none",
@@ -61,13 +62,16 @@ export function BoardHeader({ board, onUpdate }: BoardHeaderProps) {
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
-          padding: "0.25rem",
+          gap: "0.375rem",
+          padding: "0.25rem 0.5rem",
           borderRadius: "0.375rem",
+          fontSize: "12px",
         }}
         onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
         onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
       >
-        <ArrowLeft className="w-5 h-5" />
+        <LayoutGrid className="w-4 h-4" />
+        <span>Boards</span>
       </button>
 
       <div style={{ flex: 1 }}>

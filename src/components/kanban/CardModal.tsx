@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { X, Trash2, Calendar, Tag, User, Flag, Clock } from "lucide-react";
+import { X, Trash2, Calendar, Tag, User, Flag, Clock, Github } from "lucide-react";
 import { CardComments } from "./CardComments";
 import { CardAttachments } from "./CardAttachments";
 
@@ -20,6 +20,13 @@ interface Column {
   color: string;
 }
 
+interface Label {
+  id: string;
+  name: string;
+  color: string;
+  type: string;
+}
+
 interface CardDetail {
   id: string;
   column_id: string;
@@ -36,6 +43,8 @@ interface CardDetail {
   updated_at: string;
   comment_count: number;
   attachment_count: number;
+  github_repo: string | null;
+  github_issue_number: number | null;
 }
 
 interface Agent {
@@ -58,31 +67,36 @@ interface Activity {
 interface CardModalProps {
   cardId: string;
   columns: Column[];
+  boardId: string;
+  allLabels: Label[];
   onClose: () => void;
 }
 
-export function CardModal({ cardId, columns, onClose }: CardModalProps) {
+export function CardModal({ cardId, columns, boardId, allLabels, onClose }: CardModalProps) {
   const [card, setCard] = useState<CardDetail | null>(null);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [activity, setActivity] = useState<Activity[]>([]);
+  const [cardLabels, setCardLabels] = useState<Label[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
   const [editingDesc, setEditingDesc] = useState(false);
   const [descValue, setDescValue] = useState("");
-  const [labelInput, setLabelInput] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [showLabelSelector, setShowLabelSelector] = useState(false);
 
   const fetchCard = useCallback(async () => {
     try {
-      const [cardRes, agentsRes, activityRes] = await Promise.all([
+      const [cardRes, agentsRes, activityRes, labelsRes] = await Promise.all([
         fetch(`/api/kanban/cards/${cardId}`),
         fetch("/api/agents"),
         fetch(`/api/kanban/cards/${cardId}/activity`),
+        fetch(`/api/kanban/cards/${cardId}/labels`),
       ]);
       const cardData = await cardRes.json();
       const agentsData = await agentsRes.json();
       const activityData = await activityRes.json();
+      const labelsData = await labelsRes.json();
 
       if (cardData.card) {
         setCard(cardData.card);
@@ -91,6 +105,7 @@ export function CardModal({ cardId, columns, onClose }: CardModalProps) {
       }
       setAgents(agentsData.agents || []);
       setActivity(activityData.activity || []);
+      setCardLabels(labelsData.labels || []);
     } catch (err) {
       console.error("Failed to fetch card:", err);
     } finally {
@@ -150,21 +165,29 @@ export function CardModal({ cardId, columns, onClose }: CardModalProps) {
     }
   };
 
-  const labels: string[] = card?.labels ? JSON.parse(card.labels) : [];
-
-  const addLabel = () => {
-    const l = labelInput.trim();
-    if (!l || labels.includes(l)) return;
-    const newLabels = [...labels, l];
-    setLabelInput("");
-    updateField({ labels: JSON.stringify(newLabels) });
-    setCard((prev) => prev ? { ...prev, labels: JSON.stringify(newLabels) } : prev);
-  };
-
-  const removeLabel = (label: string) => {
-    const newLabels = labels.filter((l) => l !== label);
-    updateField({ labels: JSON.stringify(newLabels) });
-    setCard((prev) => prev ? { ...prev, labels: JSON.stringify(newLabels) } : prev);
+  const handleToggleLabel = async (label: Label) => {
+    const isAttached = cardLabels.some((l) => l.id === label.id);
+    try {
+      if (isAttached) {
+        const res = await fetch(`/api/kanban/cards/${cardId}/labels`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ label_id: label.id }),
+        });
+        const data = await res.json();
+        setCardLabels(data.labels || []);
+      } else {
+        const res = await fetch(`/api/kanban/cards/${cardId}/labels`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ label_id: label.id }),
+        });
+        const data = await res.json();
+        setCardLabels(data.labels || []);
+      }
+    } catch (err) {
+      console.error("Failed to toggle label:", err);
+    }
   };
 
   const currentColumn = columns.find((c) => c.id === card?.column_id);
@@ -271,21 +294,36 @@ export function CardModal({ cardId, columns, onClose }: CardModalProps) {
                 {card.title}
               </h2>
             )}
-            {currentColumn && (
-              <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", marginTop: "0.375rem" }}>
-                <div
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.375rem", flexWrap: "wrap" }}>
+              {currentColumn && (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+                  <div style={{ width: "8px", height: "8px", borderRadius: "2px", backgroundColor: currentColumn.color }} />
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>em {currentColumn.name}</span>
+                </div>
+              )}
+              {card.github_repo && card.github_issue_number && (
+                <a
+                  href={`https://github.com/${card.github_repo}/issues/${card.github_issue_number}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   style={{
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "2px",
-                    backgroundColor: currentColumn.color,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.25rem",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    padding: "0.125rem 0.5rem",
+                    borderRadius: "9999px",
+                    backgroundColor: "rgba(110, 84, 148, 0.2)",
+                    color: "#a78bfa",
+                    textDecoration: "none",
                   }}
-                />
-                <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-                  em {currentColumn.name}
-                </span>
-              </div>
-            )}
+                >
+                  <Github className="w-3 h-3" />
+                  {card.github_repo}#{card.github_issue_number}
+                </a>
+              )}
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -296,13 +334,7 @@ export function CardModal({ cardId, columns, onClose }: CardModalProps) {
         </div>
 
         {/* Content */}
-        <div
-          style={{
-            display: "flex",
-            flex: 1,
-            overflow: "hidden",
-          }}
-        >
+        <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
           {/* Left - main content */}
           <div
             style={{
@@ -316,16 +348,7 @@ export function CardModal({ cardId, columns, onClose }: CardModalProps) {
           >
             {/* Description */}
             <div>
-              <h3
-                style={{
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  color: "var(--text-secondary)",
-                  marginBottom: "0.5rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
+              <h3 style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                 Descrição
               </h3>
               {editingDesc ? (
@@ -370,24 +393,12 @@ export function CardModal({ cardId, columns, onClose }: CardModalProps) {
               )}
             </div>
 
-            {/* Attachments */}
             <CardAttachments cardId={cardId} />
-
-            {/* Comments */}
             <CardComments cardId={cardId} />
 
             {/* Activity */}
             <div>
-              <h3
-                style={{
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  color: "var(--text-secondary)",
-                  marginBottom: "0.5rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
+              <h3 style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                 <Clock className="w-3.5 h-3.5 inline-block mr-1 mb-0.5" />
                 Atividade
               </h3>
@@ -400,35 +411,16 @@ export function CardModal({ cardId, columns, onClose }: CardModalProps) {
                     try {
                       const d = JSON.parse(a.details);
                       if (d && typeof d === "object") {
-                        details = Object.entries(d)
-                          .map(([k, v]) => `${k}: ${v}`)
-                          .join(", ");
+                        details = Object.entries(d).map(([k, v]) => `${k}: ${v}`).join(", ");
                       }
-                    } catch {
-                      details = a.details || "";
-                    }
+                    } catch { details = a.details || ""; }
                     return (
-                      <div
-                        key={a.id}
-                        style={{
-                          display: "flex",
-                          gap: "0.5rem",
-                          fontSize: "12px",
-                          color: "var(--text-muted)",
-                          padding: "0.375rem 0",
-                          borderBottom: "1px solid var(--border)",
-                        }}
-                      >
+                      <div key={a.id} style={{ display: "flex", gap: "0.5rem", fontSize: "12px", color: "var(--text-muted)", padding: "0.375rem 0", borderBottom: "1px solid var(--border)" }}>
                         <span style={{ fontWeight: 600, color: "var(--text-secondary)" }}>{a.actor_id}</span>
                         <span>{a.action}</span>
                         {details && <span style={{ opacity: 0.7 }}>({details})</span>}
                         <span style={{ marginLeft: "auto", flexShrink: 0 }}>
-                          {new Date(a.created_at).toLocaleString("pt-BR", {
-                            day: "2-digit",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {new Date(a.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
                     );
@@ -477,9 +469,7 @@ export function CardModal({ cardId, columns, onClose }: CardModalProps) {
               >
                 <option value="">Nenhum</option>
                 {agents.map((agent) => (
-                  <option key={agent.id} value={agent.id}>
-                    {agent.emoji} {agent.name}
-                  </option>
+                  <option key={agent.id} value={agent.id}>{agent.emoji} {agent.name}</option>
                 ))}
               </select>
               {assignedAgent && (
@@ -518,14 +508,7 @@ export function CardModal({ cardId, columns, onClose }: CardModalProps) {
                       textAlign: "left",
                     }}
                   >
-                    <div
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        backgroundColor: PRIORITY_COLORS[p],
-                      }}
-                    />
+                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: PRIORITY_COLORS[p] }} />
                     {p === "urgent" ? "Urgente" : p === "high" ? "Alta" : p === "medium" ? "Média" : "Baixa"}
                   </button>
                 ))}
@@ -539,30 +522,32 @@ export function CardModal({ cardId, columns, onClose }: CardModalProps) {
                 Labels
               </label>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", marginBottom: "0.375rem" }}>
-                {labels.map((l) => (
+                {cardLabels.map((l) => (
                   <span
-                    key={l}
+                    key={l.id}
                     style={{
                       fontSize: "11px",
                       padding: "0.125rem 0.375rem",
                       borderRadius: "9999px",
-                      backgroundColor: "var(--accent)",
-                      color: "var(--text-primary)",
+                      backgroundColor: `${l.color}30`,
+                      color: l.color,
                       display: "flex",
                       alignItems: "center",
                       gap: "0.25rem",
+                      fontWeight: 600,
+                      border: `1px solid ${l.color}40`,
                     }}
                   >
-                    {l}
+                    {l.name}
                     <button
-                      onClick={() => removeLabel(l)}
+                      onClick={() => handleToggleLabel(l)}
                       style={{
                         background: "none",
                         border: "none",
-                        color: "var(--text-primary)",
+                        color: l.color,
                         cursor: "pointer",
                         padding: 0,
-                        fontSize: "11px",
+                        fontSize: "13px",
                         lineHeight: 1,
                         opacity: 0.7,
                       }}
@@ -572,26 +557,87 @@ export function CardModal({ cardId, columns, onClose }: CardModalProps) {
                   </span>
                 ))}
               </div>
-              <input
-                type="text"
-                placeholder="Adicionar label..."
-                value={labelInput}
-                onChange={(e) => setLabelInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") addLabel();
-                }}
-                style={{
-                  width: "100%",
-                  padding: "0.375rem 0.5rem",
-                  borderRadius: "0.375rem",
-                  backgroundColor: "var(--bg)",
-                  border: "1px solid var(--border)",
-                  color: "var(--text-primary)",
-                  fontSize: "12px",
-                  outline: "none",
-                  boxSizing: "border-box",
-                }}
-              />
+
+              {/* Label Selector */}
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setShowLabelSelector(!showLabelSelector)}
+                  style={{
+                    width: "100%",
+                    padding: "0.375rem 0.5rem",
+                    borderRadius: "0.375rem",
+                    backgroundColor: "var(--bg)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text-muted)",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  + Adicionar label
+                </button>
+                {showLabelSelector && (
+                  <>
+                    <div
+                      style={{ position: "fixed", inset: 0, zIndex: 30 }}
+                      onClick={() => setShowLabelSelector(false)}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "100%",
+                        left: 0,
+                        marginBottom: "0.25rem",
+                        backgroundColor: "var(--card)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "0.5rem",
+                        padding: "0.375rem",
+                        zIndex: 40,
+                        minWidth: "200px",
+                        maxHeight: "250px",
+                        overflowY: "auto",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                      }}
+                    >
+                      {allLabels.map((label) => {
+                        const isAttached = cardLabels.some((l) => l.id === label.id);
+                        return (
+                          <button
+                            key={label.id}
+                            onClick={() => handleToggleLabel(label)}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.5rem",
+                              width: "100%",
+                              padding: "0.375rem",
+                              borderRadius: "0.25rem",
+                              backgroundColor: isAttached ? `${label.color}20` : "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              textAlign: "left",
+                              color: "var(--text-primary)",
+                              fontSize: "12px",
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: "12px",
+                                height: "12px",
+                                borderRadius: "3px",
+                                backgroundColor: label.color,
+                                flexShrink: 0,
+                              }}
+                            />
+                            <span style={{ flex: 1 }}>{label.name}</span>
+                            {isAttached && <span style={{ color: label.color, fontWeight: 700 }}>✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Due date */}
@@ -622,43 +668,47 @@ export function CardModal({ cardId, columns, onClose }: CardModalProps) {
               />
             </div>
 
+            {/* Column */}
+            <div>
+              <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "0.375rem" }}>
+                Coluna
+              </label>
+              <select
+                value={card.column_id}
+                onChange={(e) => {
+                  const newColumnId = e.target.value;
+                  updateField({ column_id: newColumnId });
+                  setCard((prev) => prev ? { ...prev, column_id: newColumnId } : prev);
+                }}
+                style={{
+                  width: "100%",
+                  padding: "0.375rem 0.5rem",
+                  borderRadius: "0.375rem",
+                  backgroundColor: "var(--bg)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text-primary)",
+                  fontSize: "13px",
+                  outline: "none",
+                }}
+              >
+                {columns.map((col) => (
+                  <option key={col.id} value={col.id}>{col.name}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Delete */}
             <div style={{ marginTop: "auto", paddingTop: "1rem", borderTop: "1px solid var(--border)" }}>
               {deleteConfirm ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
-                  <p style={{ fontSize: "12px", color: "var(--error)", marginBottom: "0.25rem" }}>
-                    Confirmar exclusão?
-                  </p>
+                  <p style={{ fontSize: "12px", color: "var(--error)", marginBottom: "0.25rem" }}>Confirmar exclusão?</p>
                   <div style={{ display: "flex", gap: "0.375rem" }}>
-                    <button
-                      onClick={handleDeleteCard}
-                      style={{
-                        flex: 1,
-                        padding: "0.375rem",
-                        borderRadius: "0.375rem",
-                        backgroundColor: "var(--error)",
-                        color: "white",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                        fontWeight: 600,
-                      }}
-                    >
+                    <button onClick={handleDeleteCard}
+                      style={{ flex: 1, padding: "0.375rem", borderRadius: "0.375rem", backgroundColor: "var(--error)", color: "white", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>
                       Excluir
                     </button>
-                    <button
-                      onClick={() => setDeleteConfirm(false)}
-                      style={{
-                        flex: 1,
-                        padding: "0.375rem",
-                        borderRadius: "0.375rem",
-                        backgroundColor: "transparent",
-                        color: "var(--text-muted)",
-                        border: "1px solid var(--border)",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                      }}
-                    >
+                    <button onClick={() => setDeleteConfirm(false)}
+                      style={{ flex: 1, padding: "0.375rem", borderRadius: "0.375rem", backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)", cursor: "pointer", fontSize: "12px" }}>
                       Cancelar
                     </button>
                   </div>
@@ -667,28 +717,13 @@ export function CardModal({ cardId, columns, onClose }: CardModalProps) {
                 <button
                   onClick={() => setDeleteConfirm(true)}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "0.375rem",
-                    width: "100%",
-                    padding: "0.5rem",
-                    borderRadius: "0.375rem",
-                    backgroundColor: "transparent",
-                    color: "var(--text-muted)",
-                    border: "1px solid var(--border)",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                    transition: "all 0.2s",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "0.375rem",
+                    width: "100%", padding: "0.5rem", borderRadius: "0.375rem",
+                    backgroundColor: "transparent", color: "var(--text-muted)",
+                    border: "1px solid var(--border)", cursor: "pointer", fontSize: "12px", transition: "all 0.2s",
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "var(--error)";
-                    e.currentTarget.style.color = "var(--error)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "var(--border)";
-                    e.currentTarget.style.color = "var(--text-muted)";
-                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--error)"; e.currentTarget.style.color = "var(--error)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-muted)"; }}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   Excluir Card

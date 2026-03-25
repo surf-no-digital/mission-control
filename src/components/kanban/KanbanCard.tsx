@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { MessageSquare, Paperclip, Calendar } from "lucide-react";
+import { MessageSquare, Paperclip, Calendar, Github } from "lucide-react";
 
 const PRIORITY_COLORS: Record<string, string> = {
   urgent: "#ef4444",
@@ -18,6 +18,13 @@ const PRIORITY_LABELS: Record<string, string> = {
   low: "Baixa",
 };
 
+interface Label {
+  id: string;
+  name: string;
+  color: string;
+  type: string;
+}
+
 interface Card {
   id: string;
   column_id: string;
@@ -29,6 +36,8 @@ interface Card {
   assignee_agent_id: string | null;
   labels: string;
   due_date: string | null;
+  github_repo: string | null;
+  github_issue_number: number | null;
   comment_count?: number;
   attachment_count?: number;
 }
@@ -37,9 +46,10 @@ interface KanbanCardProps {
   card: Card;
   onClick: () => void;
   isDragOverlay?: boolean;
+  cardLabels?: Label[];
 }
 
-export function KanbanCard({ card, onClick, isDragOverlay }: KanbanCardProps) {
+export function KanbanCard({ card, onClick, isDragOverlay, cardLabels = [] }: KanbanCardProps) {
   const {
     attributes,
     listeners,
@@ -55,7 +65,6 @@ export function KanbanCard({ card, onClick, isDragOverlay }: KanbanCardProps) {
     opacity: isDragging ? 0.4 : 1,
   };
 
-  const labels = card.labels ? JSON.parse(card.labels) : [];
   const priorityColor = PRIORITY_COLORS[card.priority] || PRIORITY_COLORS.low;
 
   return (
@@ -81,22 +90,22 @@ export function KanbanCard({ card, onClick, isDragOverlay }: KanbanCardProps) {
       }}
     >
       {/* Labels */}
-      {labels.length > 0 && (
+      {cardLabels.length > 0 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", marginBottom: "0.5rem" }}>
-          {labels.map((label: string, i: number) => (
+          {cardLabels.map((label) => (
             <span
-              key={i}
+              key={label.id}
               style={{
                 fontSize: "10px",
                 padding: "0.125rem 0.375rem",
                 borderRadius: "9999px",
-                backgroundColor: "var(--accent)",
-                color: "var(--text-primary)",
-                fontWeight: 500,
-                opacity: 0.8,
+                backgroundColor: `${label.color}30`,
+                color: label.color,
+                fontWeight: 600,
+                border: `1px solid ${label.color}40`,
               }}
             >
-              {label}
+              {label.name}
             </span>
           ))}
         </div>
@@ -115,7 +124,7 @@ export function KanbanCard({ card, onClick, isDragOverlay }: KanbanCardProps) {
         {card.title}
       </div>
 
-      {/* Bottom row: priority, assignee, counts */}
+      {/* Bottom row */}
       <div
         style={{
           display: "flex",
@@ -124,7 +133,7 @@ export function KanbanCard({ card, onClick, isDragOverlay }: KanbanCardProps) {
           gap: "0.5rem",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
           {/* Priority */}
           {card.priority && (
             <span
@@ -140,6 +149,31 @@ export function KanbanCard({ card, onClick, isDragOverlay }: KanbanCardProps) {
             >
               {PRIORITY_LABELS[card.priority] || card.priority}
             </span>
+          )}
+
+          {/* GitHub badge */}
+          {card.github_repo && card.github_issue_number && (
+            <a
+              href={`https://github.com/${card.github_repo}/issues/${card.github_issue_number}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.25rem",
+                fontSize: "10px",
+                fontWeight: 600,
+                padding: "0.125rem 0.375rem",
+                borderRadius: "0.25rem",
+                backgroundColor: "rgba(110, 84, 148, 0.2)",
+                color: "#a78bfa",
+                textDecoration: "none",
+              }}
+            >
+              <Github className="w-3 h-3" />
+              #{card.github_issue_number}
+            </a>
           )}
 
           {/* Due date */}
@@ -160,7 +194,6 @@ export function KanbanCard({ card, onClick, isDragOverlay }: KanbanCardProps) {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          {/* Comment count */}
           {(card.comment_count ?? 0) > 0 && (
             <span
               style={{
@@ -176,7 +209,6 @@ export function KanbanCard({ card, onClick, isDragOverlay }: KanbanCardProps) {
             </span>
           )}
 
-          {/* Attachment count */}
           {(card.attachment_count ?? 0) > 0 && (
             <span
               style={{
@@ -192,15 +224,8 @@ export function KanbanCard({ card, onClick, isDragOverlay }: KanbanCardProps) {
             </span>
           )}
 
-          {/* Assignee emoji placeholder */}
           {card.assignee_agent_id && (
-            <span
-              style={{
-                fontSize: "14px",
-                lineHeight: 1,
-              }}
-              title={card.assignee_agent_id}
-            >
+            <span style={{ fontSize: "14px", lineHeight: 1 }} title={card.assignee_agent_id}>
               👤
             </span>
           )}
